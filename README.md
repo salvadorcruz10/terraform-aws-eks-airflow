@@ -1,8 +1,18 @@
 # terraform-aws-eks-airflow
 
+The general overview of the cluster is this:
+
+![diagram](diagram.png)
+
+The current architecture was implemented following this guide [Provisioning an EKS Cluster guide](https://learn.hashicorp.com/terraform/kubernetes/provision-eks-cluster)
+
 ### Prerequisites
 
 AWS account configured. For this example we are using default profile and us-east-2 region
+
+#### Dependencies
+- Cluster version: 1.15 (Specified in terraform.tfvars, version 1.16 seems not to be working when using Helm)
+- Terraform >= 0.12
 
 ### Installing
 
@@ -22,6 +32,11 @@ Once that the cluster is created, set the kubectl context:
 aws eks --region <your-region> update-kubeconfig --name <your-cluster-name>
 ```
 
+Initialize the tiller:
+```
+helm init
+```
+
 Configure the tiller:
 
 ```
@@ -30,7 +45,7 @@ kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admi
 kubectl patch deploy --namespace kube-system tiller-deploy -p '{"spec":{"template":{"spec":{"serviceAccount":"tiller"}}}}'
 ```
 
-Override values.yaml (this file is used to customize the installation using Helm). In the example below, we are setting the number of worker replicas, all possible values can be seen in [values-airflow-chart.yaml](values-airflow-chart.yaml):
+Override values.yaml (this file is used to customize the installation using Helm). In the example below, we are setting the number of worker replicas, all possible values can be seen in [values.yaml](https://github.com/helm/charts/blob/master/stable/airflow/values.yaml):
 
 ```
 ...

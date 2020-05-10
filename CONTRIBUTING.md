@@ -9,7 +9,7 @@ This project is intended to be used as an accelerator to configure Airflow in Ku
 Always refer as third person Use English
 
 #### Components
-- Subject (Required )
+- Subject (Required)
 - Description (Not always required when the subject is enough)
 - Signed (Required)
 
