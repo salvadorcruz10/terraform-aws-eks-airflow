@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: redis
+  namespace: airflow
+spec:
+  containers:
+    - name: redis
+      image: redis
+      volumeMounts:
+        - name: airflow-dags-pvc
+          mountPath: /my-efs
+  volumes:
+    - name: airflow-dags-pvc
+      persistentVolumeClaim:
+        claimName: airflow-dags-pvc

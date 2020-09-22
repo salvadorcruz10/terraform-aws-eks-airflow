@@ -1,0 +1,28 @@
+rbac:
+  create: true
+
+serviceAccount:
+  create: true
+  name: data-airflow-dags
+
+airflow:
+  service:
+    type: LoadBalancer
+  webReplicas: 1
+  config:
+    AIRFLOW__KUBERNETES__DAGS_VOLUME_CLAIM: airflow-dags-pvc
+    AIRFLOW__KUBERNETES__WORKER_SERVICE_ACCOUNT_NAME: data-airflow-dags
+    AIRFLOW__CORE__LOGGING_LEVEL: DEBUG
+    AIRFLOW__CORE__LOAD_EXAMPLES: True
+
+workers:
+  replicas:
+
+dags:
+  initContainer:
+    enabled: false
+  path: /usr/local/airflow/dags
+
+persistence:
+  enabled: true
+  existingClaim: airflow-dags-pvc

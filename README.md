@@ -32,17 +32,46 @@ Once that the cluster is created, set the kubectl context:
 aws eks --region <your-region> update-kubeconfig --name <your-cluster-name>
 ```
 
+Create a namespace for airflow deployment:
+```
+kubectl create namespace airflow
+```
+
+To destroy the EKS cluster, we run:
+
+```
+terraform destroy --var-file=terraform.tfvars
+```
+
+## For Helm 2
+
 Initialize the tiller:
 ```
-helm init
+kubectl apply -f kubernetes/helm/tiller.yaml
+helm init --service-account tiller
 ```
 
-Configure the tiller:
-
+Configure the EFS role:
 ```
-kubectl create serviceaccount --namespace kube-system tiller
-kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
-kubectl patch deploy --namespace kube-system tiller-deploy -p '{"spec":{"template":{"spec":{"serviceAccount":"tiller"}}}}'
+kubcetl apply -f kubernetes/yaml/efs/role.yaml
+``` 
+
+Replace the efs-id in [values-efs.yaml](kubernetes/helm/values-efs.yaml)
+```
+...
+  efsFileSystemId: <efs-id>
+  awsRegion: us-east-2
+...
+```
+
+Install efs-provisioner:
+```
+helm install --name efs-provisioner stable/efs-provisioner -f kubernetes/helm/values-efs.yaml
+```
+
+Create the PVC:
+```
+kubectl apply -f kubernetes/yaml/efs/efs-pvc.yaml
 ```
 
 Override values.yaml (this file is used to customize the installation using Helm). In the example below, we are setting the number of worker replicas, all possible values can be seen in [values.yaml](https://github.com/helm/charts/blob/master/stable/airflow/values.yaml):
@@ -57,7 +86,7 @@ workers:
 Once we have everything set in our values.yaml file, we can execute the Helm command:
 
 ```
-helm install stable/airflow --name "airflow" --namespace "airflow" -f values.yaml 
+helm install stable/airflow --version 4.9.0 --name "airflow" --namespace "airflow" -f kubernetes/helm/values-airflow.yaml 
 ```
 
 We can verify that our pods are up and running by executing:
@@ -80,12 +109,41 @@ To delete the Helm chart, we run:
 helm del --purge airflow 
 ```
 
-To destroy the EKS cluster, we run:
+## For Helm 3
 
+Here we are using Astronomer as example, but, can also been installed any other Airflow distribution.
+
+Add the chart repository and confirm:
 ```
-terraform destroy --var-file=terraform.tfvars
+helm repo add astronomer https://helm.astronomer.io
+helm repo list
+```
+Install the airflow chart from the repository:
+```
+helm install airflow astronomer/airflow -n airflow
+```
+We can verify that our pods are up and running by executing:
+```
+kubectl get pods -n airflow
 ```
 
+
+### Accessing to Airflow dashboard
+
+To get the airflow URL, we execute, and paste the DNS name that we will find for the external IP under our airflow service:
+````
+kubectl get svc -n airflow
+````
+Use the default user/password defined in values.yaml file:
+```
+User:       <example-user>
+Password:   <example-password>
+```
+If you want to customize your installation, override the `values.yaml` file and upgrade your deployment:
+```
+helm upgrade airflow astronomer/airflow -f values.yaml -n airflow
+```
+All possible values can be seen in [values.yaml](https://github.com/helm/charts/blob/master/stable/airflow/values.yaml):
 
 
 ## Contributing

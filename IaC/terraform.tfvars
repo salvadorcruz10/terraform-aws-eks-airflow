@@ -1,6 +1,8 @@
 cluster_name = "airflow-eks"
 region       = "us-east-2"
 profile      = "default"
+efs_name="efs-airflow"
+efs_performance_mode="generalPurpose"
 
 tags = {
   Project = "Airflow"

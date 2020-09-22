@@ -77,3 +77,12 @@ variable "cluster_version" {
   default     = "1.15"
   description = "Cluster version"
 }
+
+variable "efs_name"{
+  default="airflow-efs"
+  description="The name of the EFS"
+}
+
+variable "efs_performance_mode" {
+  default = "generalPurpose"
+}

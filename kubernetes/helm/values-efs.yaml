@@ -1,0 +1,27 @@
+
+
+## Configure provisioner
+## https://github.com/kubernetes-incubator/external-storage/tree/master/aws/efs#deployment
+##
+efsProvisioner:
+  # If specified, use this DNS or IP to connect the EFS
+  # dnsName: "my-custom-efs-dns.com"
+  efsFileSystemId: fs-860f86fe
+  awsRegion: us-east-2
+  path: /
+  provisionerName: example.com/aws-efs
+  storageClass:
+    name: aws-efs
+    isDefault: false
+    gidAllocate:
+      enabled: true
+      gidMin: 40000
+      gidMax: 50000
+    reclaimPolicy: Delete
+    mountOptions: []
+
+## Annotations to be added to deployment
+##
+#podAnnotations:
+#  iam.amazonaws.com/role: "efs_policy_test_airflow_eks"
+# iam.amazonaws.com/role: efs-provisioner-role
